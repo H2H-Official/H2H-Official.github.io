@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>H2H | Hacker Portal</title>
+    <style>
+        body {
+            background-color: #020503;
+            color: #00FF66;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1, h2 { color: #00FF66; text-transform: uppercase; }
+        .terminal-box { border: 1px solid #00FF66; padding: 20px; margin: 20px 0; }
+        .wallet-address {
+            background: #0a140d;
+            padding: 10px;
+            border: 1px dashed #00FF66;
+            word-break: break-all;
+            cursor: pointer;
+        }
+        .btn {
+            background: #00FF66;
+            color: #020503;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+        }
+        a { color: #00FF66; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <pre>
+   _   _   ____  _   _ 
+  | | | | |___ \| | | |
+  | |_| |   __) | |_| |
+  |  _  |  / __/|  _  |
+  |_| |_| |_____|_| |_|
+            </pre>
+            <h1>>_ HACKER TO HACKER (H2H)</h1>
+        </header>
+
+        <section id="mission">
+            <h2>>_ MISSION</h2>
+            <p>From Hacker to Hacker is a commitment to the cypherpunk movement: privacy, autonomy, and open-source innovation. Built by hackers, for hackers.</p>
+        </section>
+
+        <section id="tokenomics">
+            <h2>>_ TOKENOMICS</h2>
+            <ul>
+                <li>Supply: 21,000,000 H2H</li>
+                <li>Tax: 3% (1% Burn / 2% Growth Fund)</li>
+                <li>Network: Base (Layer 2)</li>
+            </ul>
+        </section>
+
+        <section id="presale" class="terminal-box">
+            <h2>>_ GENESIS PRE-SALE</h2>
+            <p>Support the ecosystem. Contribution funds the Liquidity Pool and Hacker Bounty Fund.</p>
+            <p><strong>Wallet Address:</strong></p>
+            <div class="wallet-address" id="wallet" onclick="copyWallet()">0xCD22f78967cd5cD990Be546B2b2Ba2557e78B333</div>
+            <button class="btn" onclick="copyWallet()">COPY ADDRESS</button>
+            <p style="color: #ff3333;"><strong>⚠️ CRITICAL: Send ETH ONLY via BASE NETWORK.</strong></p>
+        </section>
+
+        <section id="community">
+            <h2>>_ CONNECT</h2>
+            <p><a href="#">[TELEGRAM]</a> | <a href="#">[TWITTER/X]</a> | <a href="#">[INSTAGRAM]</a></p>
+        </section>
+    </div>
+
+    <script>
+        function copyWallet() {
+            const wallet = document.getElementById("wallet").innerText;
+            navigator.clipboard.writeText(wallet);
+            alert("Address copied to clipboard");
+        }
+    </script>
+</body>
+</html>
