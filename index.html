@@ -6,13 +6,31 @@
     <title>H2H | Hacker Portal</title>
     <style>
         body {
-            background-color: #020503;
+            margin: 0;
+            padding: 0;
+            background-color: #000;
             color: #00FF66;
             font-family: 'Courier New', Courier, monospace;
-            padding: 20px;
-            line-height: 1.6;
+            overflow-x: hidden;
         }
-        .container { max-width: 800px; margin: 0 auto; }
+        #matrix {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        .container {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: rgba(2, 5, 3, 0.85);
+            border: 1px solid #00FF66;
+            margin-top: 50px;
+        }
         h1, h2 { color: #00FF66; text-transform: uppercase; }
         .terminal-box { border: 1px solid #00FF66; padding: 20px; margin: 20px 0; }
         .wallet-address {
@@ -21,6 +39,7 @@
             border: 1px dashed #00FF66;
             word-break: break-all;
             cursor: pointer;
+            margin-bottom: 10px;
         }
         .btn {
             background: #00FF66;
@@ -36,6 +55,7 @@
     </style>
 </head>
 <body>
+    <canvas id="matrix"></canvas>
     <div class="container">
         <header>
             <pre>
@@ -51,6 +71,8 @@
         <section id="mission">
             <h2>>_ MISSION</h2>
             <p>From Hacker to Hacker is a commitment to the cypherpunk movement: privacy, autonomy, and open-source innovation. Built by hackers, for hackers.</p>
+            <p>The current financial landscape is broken and heavily centralized. We believe the future should be built by those who understand the code—not by corporate entities. We are creating a decentralized ecosystem where technical merit and community contribution define success.</p>
+            <p>Our ecosystem is built for those who value digital sovereignty, censorship resistance, and true peer-to-peer execution. Every supporter, developer, and builder who joins us now is a part of the H2H genesis. Let’s build the future, one block at a time.</p>
         </section>
 
         <section id="tokenomics">
@@ -73,11 +95,37 @@
 
         <section id="community">
             <h2>>_ CONNECT</h2>
-            <p><a href="https://www.facebook.com/profile.php?id=61590896773199">[FACEBOOK]</a> | <a href="https://www.instagram.com/hacker.2.hacker/">[INSTAGRAM]</a></p>
+            <p>
+                <a href="https://t.me/YOUR_TELEGRAM_LINK">[TELEGRAM]</a> | 
+                <a href="https://x.com/YOUR_X_HANDLE">[TWITTER/X]</a> | 
+                <a href="https://instagram.com/YOUR_IG_HANDLE">[INSTAGRAM]</a>
+            </p>
         </section>
     </div>
 
     <script>
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const matrix = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789@#$%^&*()*&^%";
+        const fontSize = 16;
+        const columns = canvas.width / fontSize;
+        const drops = [];
+        for (let x = 0; x < columns; x++) drops[x] = 1;
+        function draw() {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#0F0";
+            ctx.font = fontSize + "px Courier New";
+            for (let i = 0; i < drops.length; i++) {
+                const text = matrix[Math.floor(Math.random() * matrix.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
+        }
+        setInterval(draw, 50);
         function copyWallet() {
             const wallet = document.getElementById("wallet").innerText;
             navigator.clipboard.writeText(wallet);
