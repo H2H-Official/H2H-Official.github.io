@@ -1,12 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-/**
- * @title From Hacker to Hacker (H2H)
- * @dev A privacy-conscious, community-driven token with built-in 
- * deflationary mechanics and a dedicated growth fund for hacker bounties.
- */
-
 interface IERC20 {
     function totalSupply() external view returns (uint256);
     function balanceOf(address account) external view returns (uint256);
@@ -23,7 +17,6 @@ contract HackerToHacker is IERC20 {
     string public constant symbol = "H2H";
     uint8 public constant decimals = 18;
     
-    // 21,000,000 Total Supply
     uint256 private _totalSupply = 21000000 * 10**uint256(decimals);
     
     mapping(address => uint256) private _balances;
@@ -31,22 +24,24 @@ contract HackerToHacker is IERC20 {
     mapping(address => bool) public isExcludedFromFees;
 
     address public owner;
-    address public developmentWallet; // Fund for upgrades/hackers
+    address public developmentWallet;
     
-    // 3% Total Tax: 1% Burn, 2% Growth Fund
     uint256 public constant BURN_FEE = 1; 
     uint256 public constant GROWTH_FEE = 2;
-
-    // Anti-Whale: No one can hold more than 2% of supply (420,000 H2H)
     uint256 public maxWalletBalance = (_totalSupply * 2) / 100;
+
+    // New Events
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+    event DevelopmentWalletUpdated(address indexed previousWallet, address indexed newWallet);
+    event FeeExclusionUpdated(address indexed account, bool excluded);
 
     constructor(address _devWallet) {
         owner = msg.sender;
         developmentWallet = _devWallet;
         
-        // Exclude owner and dev wallet from fees and limits
         isExcludedFromFees[owner] = true;
         isExcludedFromFees[developmentWallet] = true;
+        isExcludedFromFees[address(this)] = true;
         
         _balances[owner] = _totalSupply;
         emit Transfer(address(0), owner, _totalSupply);
@@ -57,26 +52,39 @@ contract HackerToHacker is IERC20 {
         _;
     }
 
-    function totalSupply() public view override returns (uint256) {
-        return _totalSupply;
+    // --- ADMINISTRATIVE FUNCTIONS ---
+    
+    function transferOwnership(address newOwner) external onlyOwner {
+        require(newOwner != address(0), "H2H: zero address");
+        emit OwnershipTransferred(owner, newOwner);
+        owner = newOwner;
+    }
+    
+    function updateDevelopmentWallet(address newWallet) external onlyOwner {
+        require(newWallet != address(0), "H2H: zero address");
+        emit DevelopmentWalletUpdated(developmentWallet, newWallet);
+        developmentWallet = newWallet;
+    }
+    
+    function setExcludedFromFees(address account, bool excluded) external onlyOwner {
+        isExcludedFromFees[account] = excluded;
+        emit FeeExclusionUpdated(account, excluded);
     }
 
-    function balanceOf(address account) public view override returns (uint256) {
-        return _balances[account];
-    }
+    // --- STANDARD ERC20 FUNCTIONS ---
 
-    function transfer(address recipient, uint256 amount) public override returns (bool) {
-        _transfer(msg.sender, recipient, amount);
-        return true;
-    }
-
-    function allowance(address _owner, address spender) public view override returns (uint256) {
-        return _allowances[_owner][spender];
-    }
+    function totalSupply() public view override returns (uint256) { return _totalSupply; }
+    function balanceOf(address account) public view override returns (uint256) { return _balances[account]; }
+    function allowance(address _owner, address spender) public view override returns (uint256) { return _allowances[_owner][spender]; }
 
     function approve(address spender, uint256 amount) public override returns (bool) {
         _allowances[msg.sender][spender] = amount;
         emit Approval(msg.sender, spender, amount);
+        return true;
+    }
+
+    function transfer(address recipient, uint256 amount) public override returns (bool) {
+        _transfer(msg.sender, recipient, amount);
         return true;
     }
 
@@ -88,35 +96,36 @@ contract HackerToHacker is IERC20 {
         return true;
     }
 
+    // --- FIXED TRANSFER LOGIC ---
     function _transfer(address sender, address recipient, uint256 amount) internal {
         require(sender != address(0), "H2H: transfer from zero address");
         require(recipient != address(0), "H2H: transfer to zero address");
         require(amount > 0, "H2H: amount must be > 0");
+        require(_balances[sender] >= amount, "H2H: insufficient balance");
 
-        // Anti-Whale Check
         if (!isExcludedFromFees[recipient]) {
             require(_balances[recipient] + amount <= maxWalletBalance, "H2H: Exceeds max wallet limit");
         }
 
+        // Deduct full amount from sender
+        _balances[sender] -= amount;
+
         uint256 transferAmount = amount;
 
-        // Apply Fees (if not excluded)
         if (!isExcludedFromFees[sender] && !isExcludedFromFees[recipient]) {
             uint256 burnAmount = (amount * BURN_FEE) / 100;
             uint256 growthAmount = (amount * GROWTH_FEE) / 100;
             
-            // 1% Burn: Reduce Total Supply
             _totalSupply -= burnAmount;
             emit Transfer(sender, address(0), burnAmount);
             
-            // 2% Growth: Send to Dev Wallet
             _balances[developmentWallet] += growthAmount;
             emit Transfer(sender, developmentWallet, growthAmount);
             
             transferAmount = amount - burnAmount - growthAmount;
         }
 
-        _balances[sender] -= amount;
+        // Credit net amount to recipient
         _balances[recipient] += transferAmount;
         emit Transfer(sender, recipient, transferAmount);
     }
