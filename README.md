@@ -1,7 +1,8 @@
 # H2H-Official.github.io
 Official portal and smart contract for the From Hacker to Hacker (H2H) decentralized ecosystem. Privacy-focused, P2P, and built for the community.
-# From Hacker to Hacker (H2H)
-
+   
+   
+   # From Hacker to Hacker (H2H)
    **The R&D machine for decentralized privacy infrastructure.**
 
    H2H is not just another token. It is an experimental privacy stack designed to re-engineer how decentralized assets move, store, and communicate. We are moving beyond hype into pure R&D.
@@ -22,14 +23,6 @@ Official portal and smart contract for the From Hacker to Hacker (H2H) decentral
    - **Burn Fee:** 1%
    - **Growth Fund Fee:** 2%
    - **Network:** Base
-
-   ## 🔐 Security & Verification
-   Security is our highest priority. The H2H smart contract has been audited, security bugs have been patched, and the code is production-ready. 
-
-   **Contract Address (Base Mainnet):** 
-   `INSERT_YOUR_CONTRACT_ADDRESS_HERE`
-
-   [View on BaseScan](https://basescan.org/address/INSERT_YOUR_CONTRACT_ADDRESS_HERE)
 
    ## 🏗 Join the Mission
    We are building the infrastructure. Your contribution directly funds the code.
