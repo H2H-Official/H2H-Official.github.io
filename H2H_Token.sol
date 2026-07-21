@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+/**
+ * @title From Hacker to Hacker (H2H)
+ * @dev Optimized and corrected version for Uniswap compatibility and community trust.
+ */
+
 interface IERC20 {
     function totalSupply() external view returns (uint256);
     function balanceOf(address account) external view returns (uint256);
@@ -21,7 +26,9 @@ contract HackerToHacker is IERC20 {
     
     mapping(address => uint256) private _balances;
     mapping(address => mapping(address => uint256)) private _allowances;
+    
     mapping(address => bool) public isExcludedFromFees;
+    mapping(address => bool) public isExcludedFromMaxWallet; // Flexible exclusion for DEX pools
 
     address public owner;
     address public developmentWallet;
@@ -30,10 +37,10 @@ contract HackerToHacker is IERC20 {
     uint256 public constant GROWTH_FEE = 2;
     uint256 public maxWalletBalance = (_totalSupply * 2) / 100;
 
-    // New Events
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
     event DevelopmentWalletUpdated(address indexed previousWallet, address indexed newWallet);
     event FeeExclusionUpdated(address indexed account, bool excluded);
+    event MaxWalletExclusionUpdated(address indexed account, bool excluded);
 
     constructor(address _devWallet) {
         owner = msg.sender;
@@ -42,6 +49,10 @@ contract HackerToHacker is IERC20 {
         isExcludedFromFees[owner] = true;
         isExcludedFromFees[developmentWallet] = true;
         isExcludedFromFees[address(this)] = true;
+
+        isExcludedFromMaxWallet[owner] = true;
+        isExcludedFromMaxWallet[developmentWallet] = true;
+        isExcludedFromMaxWallet[address(this)] = true;
         
         _balances[owner] = _totalSupply;
         emit Transfer(address(0), owner, _totalSupply);
@@ -59,6 +70,12 @@ contract HackerToHacker is IERC20 {
         emit OwnershipTransferred(owner, newOwner);
         owner = newOwner;
     }
+
+    // Build trust: Give up ownership once the project is stable
+    function renounceOwnership() external onlyOwner {
+        emit OwnershipTransferred(owner, address(0));
+        owner = address(0);
+    }
     
     function updateDevelopmentWallet(address newWallet) external onlyOwner {
         require(newWallet != address(0), "H2H: zero address");
@@ -69,6 +86,12 @@ contract HackerToHacker is IERC20 {
     function setExcludedFromFees(address account, bool excluded) external onlyOwner {
         isExcludedFromFees[account] = excluded;
         emit FeeExclusionUpdated(account, excluded);
+    }
+
+    // CRITICAL: Use this to exclude the Uniswap Pool address after creation!
+    function setExcludedFromMaxWallet(address account, bool excluded) external onlyOwner {
+        isExcludedFromMaxWallet[account] = excluded;
+        emit MaxWalletExclusionUpdated(account, excluded);
     }
 
     // --- STANDARD ERC20 FUNCTIONS ---
@@ -96,18 +119,13 @@ contract HackerToHacker is IERC20 {
         return true;
     }
 
-    // --- FIXED TRANSFER LOGIC ---
+    // --- CORRECTED TRANSFER LOGIC ---
     function _transfer(address sender, address recipient, uint256 amount) internal {
         require(sender != address(0), "H2H: transfer from zero address");
         require(recipient != address(0), "H2H: transfer to zero address");
         require(amount > 0, "H2H: amount must be > 0");
         require(_balances[sender] >= amount, "H2H: insufficient balance");
 
-        if (!isExcludedFromFees[recipient]) {
-            require(_balances[recipient] + amount <= maxWalletBalance, "H2H: Exceeds max wallet limit");
-        }
-
-        // Deduct full amount from sender
         _balances[sender] -= amount;
 
         uint256 transferAmount = amount;
@@ -125,7 +143,11 @@ contract HackerToHacker is IERC20 {
             transferAmount = amount - burnAmount - growthAmount;
         }
 
-        // Credit net amount to recipient
+        // CORRECTED: Check max wallet AFTER fee deduction
+        if (!isExcludedFromMaxWallet[recipient]) {
+            require(_balances[recipient] + transferAmount <= maxWalletBalance, "H2H: Exceeds max wallet limit");
+        }
+
         _balances[recipient] += transferAmount;
         emit Transfer(sender, recipient, transferAmount);
     }
